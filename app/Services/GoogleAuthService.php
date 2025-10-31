@@ -20,6 +20,18 @@ class GoogleAuthService
         $this->googleClient->setClientId(config('services.google.client_id'));
         $this->googleClient->setClientSecret(config('services.google.client_secret'));
         $this->googleClient->setRedirectUri(config('services.google.redirect_uri'));
+        // Required scopes for Google Sign-In
+        // Without these, Google returns: "Missing required parameter: scope"
+        $this->googleClient->setScopes([
+            'openid',
+            'email',
+            'profile',
+        ]);
+        // Recommended UX options
+        $this->googleClient->setAccessType('offline');
+        $this->googleClient->setIncludeGrantedScopes(true);
+        // Make sure user can choose account and consent when needed
+        $this->googleClient->setPrompt('select_account consent');
     }
 
     /**
@@ -42,8 +54,17 @@ class GoogleAuthService
             $oauth = new \Google\Service\Oauth2($this->googleClient);
             $userInfo = $oauth->userinfo->get();
 
-            // Find or create user
-            $user = $this->userRepository->findByGoogleId($userInfo->id);
+            // Prefer provider-based lookup (uuid for our users will be BE-generated)
+            $providerId = $userInfo->id ?? null; // Google's 'sub'
+            $providerName = 'google';
+            $user = null;
+            if ($providerId) {
+                $user = $this->userRepository->findByProvider($providerId, $providerName);
+            }
+            if (!$user && !empty($userInfo->email)) {
+                // Fallback by email only to avoid duplicates on first login
+                $user = $this->userRepository->findByEmail($userInfo->email);
+            }
 
             if (!$user) {
                 $user = $this->userRepository->create([
@@ -51,13 +72,17 @@ class GoogleAuthService
                     'email' => $userInfo->email,
                     'name' => $userInfo->name,
                     'picture_url' => $userInfo->picture,
-                    'google_id' => $userInfo->id,
+                    'google_id' => $providerId,
+                    'provider_id' => $providerId,
+                    'provider_name' => $providerName,
                 ]);
             } else {
                 // Update user info if needed
                 $this->userRepository->update($user, [
                     'name' => $userInfo->name,
                     'picture_url' => $userInfo->picture,
+                    'provider_id' => $providerId,
+                    'provider_name' => $providerName,
                 ]);
             }
 
@@ -77,16 +102,27 @@ class GoogleAuthService
             $payload = $this->googleClient->verifyIdToken($idToken);
 
             if ($payload) {
-                // Find or create user
-                $user = $this->userRepository->findByGoogleId($payload['sub']);
+                $providerId = $payload['sub'] ?? null;
+                $providerName = 'google';
+                $email = $payload['email'] ?? null;
+
+                $user = null;
+                if ($providerId) {
+                    $user = $this->userRepository->findByProvider($providerId, $providerName);
+                }
+                if (!$user && $email) {
+                    $user = $this->userRepository->findByEmail($email);
+                }
 
                 if (!$user) {
                     $user = $this->userRepository->create([
                         'id' => \Illuminate\Support\Str::uuid(),
-                        'email' => $payload['email'],
+                        'email' => $email,
                         'name' => $payload['name'] ?? null,
                         'picture_url' => $payload['picture'] ?? null,
-                        'google_id' => $payload['sub'],
+                        'google_id' => $providerId,
+                        'provider_id' => $providerId,
+                        'provider_name' => $providerName,
                     ]);
                 }
 

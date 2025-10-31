@@ -49,12 +49,16 @@ class AuthController extends Controller
         // Create API token
         $token = $user->createToken('api-token')->plainTextToken;
 
-        // Redirect to frontend with user_id and token
-        $redirectUrl = config('app.frontend_url') 
-            . '?user_id=' . $user->id 
-            . '&token=' . $token;
+        // Redirect to frontend without query params (clean redirect)
+        $redirectUrl = rtrim(config('app.frontend_url'), '/') . '/vault';
 
-        return redirect($redirectUrl);
+        // Set lightweight cookies so frontend can read user_id without query params
+        // Minutes: 30 days
+        $minutes = 60 * 24 * 30;
+        return redirect($redirectUrl)
+            ->withCookie(cookie('user_id', $user->id, $minutes, '/', null, false, false, false, 'Lax'))
+            ->withCookie(cookie('user_name', $user->name ?? '', $minutes, '/', null, false, false, false, 'Lax'))
+            ->withCookie(cookie('user_picture', $user->picture_url ?? '', $minutes, '/', null, false, false, false, 'Lax'));
     }
 
     /**

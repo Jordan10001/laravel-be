@@ -16,6 +16,13 @@ class UserRepository implements UserRepositoryInterface
         return User::where('google_id', $googleId)->first();
     }
 
+    public function findByProvider(string $providerId, string $providerName): ?User
+    {
+        return User::where('provider_id', $providerId)
+            ->where('provider_name', $providerName)
+            ->first();
+    }
+
     public function create(array $data): User
     {
         return User::create($data);
