@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\VaultRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class VaultController extends Controller
@@ -30,7 +31,7 @@ class VaultController extends Controller
 
         $vault = $this->vaultRepository->create([
             'id' => Str::uuid(),
-            'owner_user_id' => auth()->id(),
+            'owner_user_id' => Auth::id(),
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
         ]);
@@ -53,7 +54,7 @@ class VaultController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $ownerId = $request->query('owner_id', auth()->id());
+        $ownerId = $request->query('owner_id', Auth::id());
 
         $vaults = $this->vaultRepository->findByOwner($ownerId);
 
@@ -85,7 +86,7 @@ class VaultController extends Controller
         }
 
         // Check authorization
-        if ($vault->owner_user_id !== auth()->id()) {
+        if ($vault->owner_user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',

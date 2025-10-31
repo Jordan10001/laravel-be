@@ -7,6 +7,7 @@ use App\Repositories\CredentialRepositoryInterface;
 use App\Repositories\VaultRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class CredentialController extends Controller
@@ -37,7 +38,7 @@ class CredentialController extends Controller
 
         // Check vault ownership
         $vault = $this->vaultRepository->findById($validated['vault_id']);
-        if ($vault->owner_user_id !== auth()->id()) {
+        if ($vault->owner_user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
@@ -83,7 +84,7 @@ class CredentialController extends Controller
         }
 
         // Check authorization
-        if ($vault->owner_user_id !== auth()->id()) {
+        if ($vault->owner_user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
@@ -124,7 +125,7 @@ class CredentialController extends Controller
 
         // Check authorization through vault
         $vault = $credential->vault;
-        if ($vault->owner_user_id !== auth()->id()) {
+        if ($vault->owner_user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
@@ -163,7 +164,7 @@ class CredentialController extends Controller
 
         // Check authorization
         $vault = $credential->vault;
-        if ($vault->owner_user_id !== auth()->id()) {
+        if ($vault->owner_user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
@@ -210,7 +211,7 @@ class CredentialController extends Controller
 
         // Check authorization
         $vault = $credential->vault;
-        if ($vault->owner_user_id !== auth()->id()) {
+        if ($vault->owner_user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
