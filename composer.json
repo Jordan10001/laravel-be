@@ -6,7 +6,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "google/apiclient": "*",
         "laravel/framework": "^11.0",
+        "laravel/sanctum": "*",
         "laravel/tinker": "^2.9"
     },
     "require-dev": {
