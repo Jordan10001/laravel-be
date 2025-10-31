@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Repositories\UserRepositoryInterface;
 use Google\Client;
 use Google\Exception;
+use Illuminate\Support\Facades\Log;
 
 class GoogleAuthService
 {
@@ -62,7 +63,7 @@ class GoogleAuthService
 
             return $user;
         } catch (Exception $e) {
-            \Log::error('Google Auth Error: ' . $e->getMessage());
+            Log::error('Google Auth Error: ' . $e->getMessage());
             return null;
         }
     }
@@ -94,7 +95,7 @@ class GoogleAuthService
 
             return null;
         } catch (Exception $e) {
-            \Log::error('ID Token Verification Error: ' . $e->getMessage());
+            Log::error('ID Token Verification Error: ' . $e->getMessage());
             return null;
         }
     }
