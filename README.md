@@ -1,17 +1,11 @@
 # Laravel Backend Setup - Credential Vault
 
-Backend Laravel yang 100% kompatibel dengan frontend Next.js (`feku`).
-
-## 🎯 Tujuan
-
-Backend ini dibuat untuk menyediakan API yang identik dengan backend Go (`project-be-go`), sehingga frontend yang sama bisa menggunakan kedua backend secara bergantian tanpa perlu modifikasi.
-
 ## 📋 Prerequisites
 
-- PHP 8.2 atau lebih tinggi
+- PHP 8.2 
 - Composer
-- MySQL 8.0 atau lebih tinggi
-- XAMPP (recommended) atau server web lain
+- MySQL 8.0
+- XAMPP (recommended) 
 
 ## 🚀 Installation
 
@@ -47,8 +41,6 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 ```
 
-**PENTING**: Gunakan Google OAuth credentials yang sama dengan backend Go!
-
 ### 3. Generate Application Key (jika belum ada)
 
 ```bash
@@ -68,8 +60,6 @@ CREATE DATABASE password CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```bash
 php artisan migrate
 ```
-
-Ini akan membuat tabel:
 - `users` - User accounts (Google OAuth)
 - `vaults` - Password vaults
 - `credentials` - Stored credentials (encrypted)
@@ -79,18 +69,13 @@ Ini akan membuat tabel:
 ```bash
 php artisan serve
 ```
-
-Server akan berjalan di `http://localhost:8000`
+`http://localhost:8000`
 
 ## 🔧 Configure Frontend
-
-Edit file `.env` di folder `feku`:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
-
-Kemudian restart frontend:
 
 ```bash
 cd feku
@@ -98,8 +83,6 @@ npm run dev
 ```
 
 ## 📡 API Endpoints
-
-Semua endpoint API identik dengan backend Go. Lihat `API_COMPATIBILITY.md` untuk detail lengkap.
 
 ### Auth
 - `GET /auth/google` - Login with Google
@@ -168,51 +151,6 @@ Semua endpoint API identik dengan backend Go. Lihat `API_COMPATIBILITY.md` untuk
 - created_at, updated_at
 ```
 
-## 🧪 Testing
-
-### Test dengan Postman
-
-1. **Login**:
-   - Buka browser: `http://localhost:8000/auth/google`
-   - Login dengan Google
-   - Copy `user_id` dari URL redirect
-
-2. **Create Vault**:
-   ```bash
-   POST http://localhost:8000/api/v1/vaults
-   Content-Type: application/json
-
-   {
-     "owner_user_id": "your-user-id",
-     "name": "My Vault",
-     "description": "Test vault"
-   }
-   ```
-
-3. **Create Credential**:
-   ```bash
-   POST http://localhost:8000/api/v1/credentials
-   Content-Type: application/json
-
-   {
-     "vault_id": "vault-id",
-     "username": "test@example.com",
-     "password": "SecurePassword123",
-     "url": "https://example.com"
-   }
-   ```
-
-### Test dengan Frontend
-
-1. Pastikan backend Laravel berjalan di `http://localhost:8000`
-2. Update `.env` di folder `feku`:
-   ```env
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-   ```
-3. Restart frontend
-4. Buka `http://localhost:3000`
-5. Test semua fitur (login, create vault, create credential, dll)
-
 ## 📂 Project Structure
 
 ```
@@ -245,42 +183,6 @@ project-inno/
 └── .env
 ```
 
-## 🔄 Switching Between Backends
-
-### Untuk menggunakan backend Go:
-```env
-# feku/.env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-```
-
-### Untuk menggunakan backend Laravel:
-```env
-# feku/.env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-```
-
-**Tidak perlu ubah kode frontend!** 🎉
-
-## ⚠️ Troubleshooting
-
-### CORS Error
-- Pastikan `HandleCors` middleware aktif
-- Check response headers include `Access-Control-Allow-Origin: *`
-
-### Database Connection Error
-- Pastikan MySQL berjalan
-- Check credentials di `.env`
-- Pastikan database `password` sudah dibuat
-
-### Google OAuth Error
-- Check `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET`
-- Pastikan redirect URI di Google Console: `http://localhost:8000/auth/google/callback`
-- Tambahkan `http://localhost:3000` di Authorized JavaScript origins
-
-### Encryption Error
-- Pastikan `APP_KEY` sudah di-set (run `php artisan key:generate`)
-- Jangan ganti `APP_KEY` setelah ada data encrypted
-
 ## 📝 Notes
 
 - **UUID**: Semua ID menggunakan UUID (bukan auto-increment)
@@ -288,10 +190,3 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 - **Cascade Delete**: Menghapus vault akan menghapus semua credentials di dalamnya
 - **No Authentication**: Untuk demo, semua endpoint public (tidak butuh token)
 
-## 🤝 Contributing
-
-Jangan ubah struktur API response! Backend ini harus 100% kompatibel dengan frontend yang sudah ada.
-
-## 📄 License
-
-Same as project
