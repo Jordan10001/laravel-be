@@ -5,11 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * User model
+ * NOTE: We DO NOT use HasApiTokens/Sanctum because we don't store tokens in DB
+ * We use Google's access token directly (matches Go backend behavior)
+ */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasUuids;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'id',

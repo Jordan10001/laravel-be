@@ -30,6 +30,8 @@ class AuthController extends Controller
     /**
      * GET /auth/google/callback
      * Google OAuth callback endpoint
+     * MUST match Go backend behavior: redirect to /login with Google access token and user_id
+     * NOTE: Token is Google's access token (temporary, expires in minutes), NOT stored in DB
      */
     public function googleCallback(Request $request): \Symfony\Component\HttpFoundation\RedirectResponse
     {
@@ -37,28 +39,26 @@ class AuthController extends Controller
         $state = $request->query('state');
 
         if (!$code) {
-            return redirect(config('app.frontend_url') . '?error=no_code');
+            return redirect(config('app.frontend_url') . '/login?error=no_code');
         }
 
-        $user = $this->googleAuthService->handleCallback($code);
+        // handleCallback now returns both user and Google token
+        $result = $this->googleAuthService->handleCallback($code);
 
-        if (!$user) {
-            return redirect(config('app.frontend_url') . '?error=auth_failed');
+        if (!$result || !isset($result['user']) || !isset($result['token'])) {
+            return redirect(config('app.frontend_url') . '/login?error=auth_failed');
         }
 
-        // Create API token
-        $token = $user->createToken('api-token')->plainTextToken;
+        $user = $result['user'];
+        $googleToken = $result['token']; // Google's access token
 
-        // Redirect to frontend without query params (clean redirect)
-        $redirectUrl = rtrim(config('app.frontend_url'), '/') . '/vault';
+        // IMPORTANT: Redirect to /login (not /vault) with Google token and user_id
+        // Token is Google's access token (temporary), matching Go backend
+        // Frontend login page will read user_id from URL and store in localStorage
+        $frontendUrl = rtrim(config('app.frontend_url'), '/') . '/login';
+        $redirectUrl = $frontendUrl . '?token=' . urlencode($googleToken) . '&user_id=' . urlencode($user->id);
 
-        // Set lightweight cookies so frontend can read user_id without query params
-        // Minutes: 30 days
-        $minutes = 60 * 24 * 30;
-        return redirect($redirectUrl)
-            ->withCookie(cookie('user_id', $user->id, $minutes, '/', null, false, false, false, 'Lax'))
-            ->withCookie(cookie('user_name', $user->name ?? '', $minutes, '/', null, false, false, false, 'Lax'))
-            ->withCookie(cookie('user_picture', $user->picture_url ?? '', $minutes, '/', null, false, false, false, 'Lax'));
+        return redirect($redirectUrl);
     }
 
     /**

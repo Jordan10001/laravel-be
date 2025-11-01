@@ -21,6 +21,7 @@ class VaultController extends Controller
     /**
      * POST /api/v1/vaults
      * Create a new vault
+     * Response format MUST match Go backend
      */
     public function store(Request $request): JsonResponse
     {
@@ -40,12 +41,13 @@ class VaultController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Vault created successfully',
+            'message' => 'Vault created', // Match Go: "Vault created" not "Vault created successfully"
             'data' => [
                 'id' => $vault->id,
                 'owner_user_id' => $vault->owner_user_id,
                 'name' => $vault->name,
                 'description' => $vault->description,
+                'created_at' => $vault->created_at->toIso8601String(),
             ],
         ], 201);
     }
@@ -53,6 +55,7 @@ class VaultController extends Controller
     /**
      * GET /api/v1/vaults?owner_id=user-uuid
      * List vaults by owner
+     * Response format MUST match Go backend
      */
     public function index(Request $request): JsonResponse
     {
@@ -68,6 +71,7 @@ class VaultController extends Controller
                 'owner_user_id' => $vault->owner_user_id,
                 'name' => $vault->name,
                 'description' => $vault->description,
+                'created_at' => $vault->created_at->toIso8601String(),
             ])->toArray(),
         ]);
     }
@@ -75,6 +79,7 @@ class VaultController extends Controller
     /**
      * DELETE /api/v1/vaults/:id
      * Delete vault and all credentials in it
+     * Response format MUST match Go backend
      */
     public function destroy(string $id): JsonResponse
     {

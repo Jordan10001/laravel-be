@@ -44,11 +44,26 @@ class GoogleAuthService
 
     /**
      * Handle callback from Google and authenticate user
+     * Returns array with user and Google access token (matches Go backend)
+     * 
+     * @return array{user: User, token: string}|null
      */
-    public function handleCallback(string $code): ?User
+    public function handleCallback(string $code): ?array
     {
         try {
             $token = $this->googleClient->fetchAccessTokenWithAuthCode($code);
+            
+            // Check if token fetch was successful
+            if (isset($token['error'])) {
+                Log::error('Google OAuth token error: ' . json_encode($token));
+                return null;
+            }
+            
+            if (empty($token['access_token'])) {
+                Log::error('Google OAuth: No access token received');
+                return null;
+            }
+            
             $this->googleClient->setAccessToken($token);
 
             $oauth = new \Google\Service\Oauth2($this->googleClient);
@@ -86,7 +101,11 @@ class GoogleAuthService
                 ]);
             }
 
-            return $user;
+            // Return both user and Google's access token (matches Go backend)
+            return [
+                'user' => $user,
+                'token' => $token['access_token'], // Google's access token (temporary)
+            ];
         } catch (Exception $e) {
             Log::error('Google Auth Error: ' . $e->getMessage());
             return null;
